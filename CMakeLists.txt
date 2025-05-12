@@ -7,22 +7,35 @@ project(zerocode
   DESCRIPTION "A C++ project with no code"
   LANGUAGES CXX
 )
-
-option(ZEROCODE_ENABLE_WARNINGS "Enable compiler warnings" ON)
-option(ZEROCODE_BUILD_TESTS "Build tests" OFF)
-
-if(ZEROCODE_ENABLE_WARNINGS)
-  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    add_compile_options(-Wall -Wextra -Wpedantic)
-  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_options(/W4)
-  endif()
-endif()
+include(CTest)
 
 add_subdirectory(src/zerocode)
+add_subdirectory(test/zerocode)
 
-if(ZEROCODE_BUILD_TESTS)
-  include(CTest)
-  enable_testing()
-  add_subdirectory(test/zerocode)
-endif()
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/zerocode-config-version.cmake"
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion
+)
+
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/zerocode-config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/zerocode-config.cmake"
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zerocode
+)
+
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/zerocode-config.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/zerocode-config-version.cmake"
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/zerocode
+  COMPONENT libzerocode-dev
+)
+
+install(EXPORT zerocode
+  FILE zerocodeTargets.cmake
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/zerocode"
+  COMPONENT libzerocode-dev
+  NAMESPACE zerocode::
+)
